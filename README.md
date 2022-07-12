@@ -100,3 +100,4 @@ http://sb-vault-sample.susimsek.github.io
 * Spring Web
 * Spring Actuator
 * Dev tools(dev environment)
+* Maven Jib Plugin
