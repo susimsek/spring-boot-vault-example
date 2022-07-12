@@ -14,9 +14,9 @@ HashiCorp's Vault is a tool to store and secure secrets. Vault, in general, solv
 
 Consul is a tool that provides components for resolving some of the most common challenges in a micro-services architecture:
 
-Service Discovery – to automatically register and unregister the network locations of service instances
-Health Checking – to detect when a service instance is up and running
-Distributed Configuration – to ensure all service instances use the same configuration
+Service Discovery – to automatically register and unregister the network locations of service instances  
+Health Checking – to detect when a service instance is up and running  
+Distributed Configuration – to ensure all service instances use the same configuration  
 
 <img src="https://github.com/susimsek/spring-boot-vault-example/blob/master/images/consul.png" alt="Spring Boot Kotlin Consul" width="100%" height="100%"/>
 
