@@ -83,7 +83,7 @@ following bash command
  ./deploy.sh -u
 ```
 
-The Native Reactive Graphql API can be accessed with ingress from the link below.  
+The App can be accessed with ingress from the link below.  
 http://sb-vault-sample.susimsek.github.io
 
 # Used Technologies
