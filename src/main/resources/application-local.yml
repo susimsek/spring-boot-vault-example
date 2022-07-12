@@ -1,0 +1,12 @@
+server:
+  port: ${PORT:8081}
+
+spring:
+  cloud:
+    vault:
+      enabled: false
+  devtools:
+    restart:
+      enabled: true
+    livereload:
+      enabled: false

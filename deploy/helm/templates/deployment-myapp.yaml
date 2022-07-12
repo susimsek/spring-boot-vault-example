@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp
+  labels:
+    {{- include "myapp.labels" . | nindent 4 }}
+    version: v1
+spec:
+  selector:
+    matchLabels:
+      {{- include "myapp.selectorLabels" . | nindent 6 }}
+      version: v1
+  {{- if .Values.global.updateStrategy }}
+  {{- if not .Values.myapp.autoscaling.enabled }}
+  replicas: {{ .Values.myapp.replicaCount }}
+  {{- end }}
+  strategy: {{- toYaml .Values.global.updateStrategy | nindent 4 }}
+  {{- end }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/config-myapp.yaml") . | sha256sum }}
+      labels:
+        {{- include "myapp.selectorLabels" . | nindent 8 }}
+        version: v1
+    spec:
+      serviceAccountName: {{ template "app.serviceAccountName" . }}
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - myapp
+                topologyKey: kubernetes.io/hostname
+              weight: 100
+      {{- if .Values.global.imagePullSecrets }}
+      imagePullSecrets: {{- toYaml .Values.global.imagePullSecrets | nindent 4 }}
+      {{- end }}
+      containers:
+        {{- if .Values.myapp.extraSideContainers }}
+        {{ tpl .Values.myapp.extraSideContainers . | indent 8 }}
+        {{- end }}
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.myapp.image.repository }}:{{ .Values.myapp.image.tag }}"
+          imagePullPolicy: {{ .Values.myapp.image.pullPolicy }}
+          {{- if .Values.myapp.command }}
+          command:
+          {{ tpl .Values.myapp.command . | indent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.myapp.containerPorts.http }}
+          {{- if .Values.myapp.livenessProbe.enabled }}
+          livenessProbe: {{- omit .Values.myapp.livenessProbe "enabled" | toYaml | nindent 12 }}
+          {{- else if .Values.myapp.customLivenessProbe }}
+          livenessProbe: {{- toYaml .Values.myapp.customLivenessProbe | nindent 12 }}
+          {{- end }}
+          {{- if .Values.myapp.readinessProbe.enabled }}
+          readinessProbe: {{- omit .Values.myapp.readinessProbe "enabled" | toYaml | nindent 12 }}
+          {{- else if .Values.myapp.customReadinessProbe }}
+          readinessProbe: {{- toYaml .Values.myapp.customReadinessProbe | nindent 12 }}
+          {{- end }}
+          {{- if .Values.myapp.resources }}
+          resources: {{- toYaml .Values.myapp.resources | nindent 12 }}
+          {{- end }}
+          envFrom:
+            - configMapRef:
+                name: myapp-configmap
+          volumeMounts:
+          {{- if .Values.myapp.extraVolumeMounts }}
+          {{- toYaml .Values.myapp.extraVolumeMounts | nindent 12 }}
+      {{- end }}
+      {{- if .Values.myapp.extraInitContainers }}
+      initContainers:
+      {{ tpl .Values.myapp.extraInitContainers . | indent 8 }}
+      {{- end }}
+      {{- if .Values.myapp.extraVolumes }}
+      volumes:
+      {{- if .Values.myapp.extraVolumes }}
+      {{- toYaml .Values.myapp.extraVolumes | nindent 8 }}
+  {{- end }}
+  {{- end }}

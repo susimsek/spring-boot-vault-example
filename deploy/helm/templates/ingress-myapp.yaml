@@ -1,0 +1,41 @@
+{{- if .Values.myapp.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: myapp
+  labels:
+  {{- include "myapp.labels" . | nindent 4 }}
+  annotations:
+    {{- if .Values.myapp.ingress.certManager }}
+    kubernetes.io/tls-acme: "true"
+    {{- end }}
+    {{- if .Values.myapp.ingress.annotations }}
+    {{ toYaml .Values.myapp.ingress.annotations | indent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.myapp.ingress.tls }}
+  tls:
+    {{- range .Values.myapp.ingress.tls }}
+    - hosts:
+        {{- range .hosts }}
+        - {{ . | quote }}
+      {{- end }}
+      secretName: {{ .secretName }}
+  {{- end }}
+  {{- end }}
+  rules:
+    {{- if .Values.myapp.ingress.hostName }}
+    - host: {{ tpl .Values.myapp.ingress.hostName . }}
+      http:
+    {{- else }}
+    - http:
+        {{- end }}
+        paths:
+          - path: {{ .Values.myapp.ingress.path }}
+            pathType: Prefix
+            backend:
+              service:
+                name: myapp
+                port:
+                  number: {{ .Values.myapp.service.port }}
+  {{- end }}

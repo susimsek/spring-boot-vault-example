@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: myapp
+  labels:
+  {{- include "myapp.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.myapp.service.type }}
+  {{- if and (eq .Values.myapp.service.type "LoadBalancer") .Values.myapp.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.myapp.service.loadBalancerIP }}
+  {{- end }}
+  {{- if and (eq .Values.myapp.service.type "ClusterIP") .Values.myapp.service.clusterIP }}
+  clusterIP: {{ .Values.myapp.service.clusterIP }}
+  {{- end }}
+  ports:
+    - port: {{ .Values.myapp.service.port }}
+      targetPort: http
+      {{- if and (or (eq .Values.myapp.service.type "NodePort") (eq .Values.myapp.service.type "LoadBalancer")) .Values.myapp.service.nodePort }}
+      nodePort: {{ .Values.myapp.service.nodePort }}
+      {{- else if eq .Values.myapp.service.type "ClusterIP" }}
+      nodePort: null
+      {{- end }}
+      name: http
+  selector:
+  {{- include "myapp.selectorLabels" . | nindent 4 }}

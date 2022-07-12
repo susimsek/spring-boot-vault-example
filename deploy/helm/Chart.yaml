@@ -1,0 +1,14 @@
+apiVersion: v2
+name: sb-vault-sample
+description: Spring Boot Vault Consul Sample
+icon: https://github.com/susimsek/spring-native-example/blob/main/images/spring-native-example.png
+keywords:
+  - spring
+  - vault
+  - consul
+  - service-discovery
+  - spring-boot
+
+type: application
+version: 1.0.0
+appVersion: "1.0.0"

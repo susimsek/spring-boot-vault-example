@@ -1,0 +1,11 @@
+server:
+  forward-headers-strategy: framework
+  shutdown: graceful
+  port: ${PORT:8081}
+
+spring:
+  devtools:
+    restart:
+      enabled: false
+    livereload:
+      enabled: false

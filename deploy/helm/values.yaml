@@ -1,0 +1,74 @@
+global:
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 1
+  imagePullSecrets: []
+
+serviceAccount:
+  name: internal-app
+
+myapp:
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 4
+    targetCPU: 50
+    targetMemory: 50
+  replicaCount: 2
+  containerPorts:
+    http: 8085
+  image:
+    repository: suayb/sb-vault-sample
+    tag: latest
+    pullPolicy: Always
+  service:
+    type: ClusterIP
+    port: 8085
+    clusterIP:
+    loadBalancerIP:
+  environment:
+  ingress:
+    enabled: true
+    certManager: false
+    annotations:
+      kubernetes.io/ingress.class: "nginx"
+    path: /
+    hostName: sb-vault-sample.susimsek.github.io
+    tls: [ ]
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: 1
+      memory: 1Gi
+  readinessProbe:
+    enabled: true
+    httpGet:
+      path: /actuator/health/readiness
+      port: http
+      scheme: HTTP
+      httpHeaders: [ ]
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 2
+    failureThreshold: 6
+    successThreshold: 1
+  livenessProbe:
+    enabled: true
+    httpGet:
+      path: /actuator/health/liveness
+      port: http
+      scheme: HTTP
+      httpHeaders: [ ]
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 2
+    failureThreshold: 3
+    successThreshold: 1
+  customLivenessProbe: { }
+  customReadinessProbe: { }
+  extraVolumeMounts: [ ]
+  extraVolumes: [ ]

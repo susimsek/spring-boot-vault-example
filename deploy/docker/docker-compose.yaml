@@ -1,0 +1,71 @@
+version: '3.8'
+
+networks:
+  test:
+    name: backend_test
+
+volumes:
+  vault:
+  consul:
+  postgres:
+
+services:
+  vault:
+    image: vault:latest
+    restart: unless-stopped
+    container_name: vault
+    entrypoint: "vault server -config=/config/vault-config.json"
+    cap_add:
+      - IPC_LOCK
+    depends_on:
+      - consul
+    networks:
+      - test
+    environment:
+      - VAULT_ADDR=http://127.0.0.1:8200
+    ports:
+      - "8200:8200"
+    volumes:
+      - ./vault/config:/config
+      - ./vault/policies:/policies
+      - vault:/vault/data
+
+  consul:
+    image: consul:latest
+    restart: unless-stopped
+    container_name: consul
+    networks:
+      - test
+    command: "agent -server -bind=0.0.0.0 -client 0.0.0.0 -bootstrap-expect=1 -config-file=/consul/config/config.json"
+    ports:
+      - "8300:8300"
+      - "8400:8400"
+      - "8500:8500"
+      - "8600:53/udp"
+    volumes:
+      - ./consul/config/consul-config.json:/consul/config/config.json
+      - ./consul/config/consul-acl.json:/consul/config/consul-acl.json
+      - consul:/consul/data
+
+  app:
+    image: suayb/sb-vault-sample
+    restart: unless-stopped
+    container_name: app
+    networks:
+      - test
+    depends_on:
+      - vault
+      - consul
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_CLOUD_CONSUL_HOST=consul
+      - SPRING_CLOUD_CONSUL_PORT=8500
+      - SPRING_CLOUD_CONSUL_DISCOVERY_ACL_TOKEN=${CONSUL_ACL_TOKEN}
+      - SPRING_CLOUD_VAULT_URI=http://vault:8200
+      - SPRING_CLOUD_VAULT_AUTHENTICATION=APPROLE
+      - SPRING_CLOUD_VAULT_APP_ROLE_ROLE_ID=${MYAPP_APP_ROLE_ROLE_ID}
+      - SPRING_CLOUD_VAULT_APP_ROLE_SECRET_ID=${MYAPP_APP_ROLE_SECRET_ID}
+      # - SPRING_CLOUD_VAULT_AUTHENTICATION=TOKEN
+      # - SPRING_CLOUD_VAULT_TOKEN=${MYAPP_TOKEN}
+    ports:
+      - '8085:8085'
